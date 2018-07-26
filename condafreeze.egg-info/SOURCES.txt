@@ -1,6 +1,0 @@
-README.md
-bin/freeze
-condafreeze.egg-info/PKG-INFO
-condafreeze.egg-info/SOURCES.txt
-condafreeze.egg-info/dependency_links.txt
-condafreeze.egg-info/top_level.txt
