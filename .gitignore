@@ -6,7 +6,7 @@ build
 .cache
 .coverage
 .coverage.xml
-shakemap.egg-info/
+**.egg-info/
 **/shake_data.hdf
 **/.gmtcommands4
 **/.ropeproject
