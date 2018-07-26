@@ -1,0 +1,107 @@
+#!/usr/bin/env python
+
+import os
+import sys
+import argparse
+from shutil import copyfile
+import subprocess
+
+
+def main(args):
+    # channel_dir = '/Users/emthompson/temp/freeze/'
+    os_str = 'noarch'
+
+    # Make output direcotries if they don't exist
+    if not os.path.exists(args.channel_dir):
+        os.makedirs(args.channel_dir)
+    os_dir = os.path.join(args.channel_dir, os_str)
+    if not os.path.exists(os_dir):
+        os.makedirs(os_dir)
+
+    # Generate conda list file
+    print('Running conda list...')
+    list_file = os.path.join(args.channel_dir, 'conda_list.txt')
+    cmd = 'conda list > %s' % list_file
+    rc, so, se = get_command_output(cmd)
+    if not rc:
+        raise Exception('conda list failed.')
+
+    # Read conda list output
+    print('Reading conda list result...')
+    with open(list_file, 'r') as f:
+        lines = f.readlines()
+
+    # Strip off comment lines
+    lines = [l for l in lines if not l.startswith('#')]
+
+    # Get package file names from conda list file
+    package_src = []
+    for i in range(len(lines)):
+        tmp = lines[i].split()
+        file_name = '%s-%s-%s.tar.bz2' % tuple(tmp[0:3])
+        package_src.append(file_name)
+
+    # Try to find conda root dir... this is hacky
+    conda_root = os.path.abspath(
+        os.path.join(
+            os.environ['CONDA_EXE'], '..', '..'))
+
+    # Where are the package sources?
+    pkg_sources = os.path.join(conda_root, 'pkgs')
+
+    # Copy packages to output directory
+
+    print('Copying packages...')
+    for i in range(len(package_src)):
+        src_path = os.path.join(pkg_sources, package_src[i])
+        dst_path = os.path.join(os_dir, package_src[i])
+        copyfile(src_path, dst_path)
+
+    print('Indexing channel...')
+    cmd = 'conda index %s' % os_dir
+    rc, so, se = get_command_output(cmd)
+    if not rc:
+        raise Exception('Indexing failed.')
+
+    tar_file = '%s.tar' % args.channel_dir.rstrip('/')
+    print('Creating tar file: %s' %tar_file)
+    cmd = 'tar -cvf %s %s' % (tar_file, args.channel_dir)
+    rc, so, se = get_command_output(cmd)
+    if not rc:
+        raise Exception('Tar failed.')
+
+
+def get_command_output(cmd):
+    """
+    Method for calling external system command.
+    Args:
+        cmd: String command (e.g., 'ls -l', etc.).
+    Returns:
+        Three-element tuple containing a boolean indicating success or failure,
+        the stdout from running the command, and stderr.
+    """
+    proc = subprocess.Popen(cmd,
+                            shell=True,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE
+                            )
+    stdout, stderr = proc.communicate()
+    retcode = proc.returncode
+    if retcode == 0:
+        retcode = True
+    else:
+        retcode = False
+    return (retcode, stdout, stderr)
+
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='This is to help freeze conda dependencies.',
+        formatter_class=argparse.RawDescriptionHelpFormatter)
+    parser.add_argument(
+        'channel_dir',
+        help='Directory for output channel.')
+    args = parser.parse_args()
+    main(args)
+    print('Done.')
+    sys.exit(0)
