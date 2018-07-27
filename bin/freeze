@@ -34,6 +34,9 @@ def main(args):
     # Strip off comment lines
     lines = [l for l in lines if not l.startswith('#')]
 
+    # Remove pip installs
+    lines = [l for l in lines if '<pip>' not in l]
+
     # Get package file names from conda list file
     package_src = []
     for i in range(len(lines)):
