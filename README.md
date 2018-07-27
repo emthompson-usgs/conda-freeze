@@ -35,8 +35,8 @@ freeze <output directory>
 This will output a channel in the specified output direcotry that can be
 used to install with a command like:
 ```
-conda create -y --force -n test \
-      -c file://<path to channel directory> \
+conda create -y --override-channels -n test \
+      -c file://<absolute path to channel directory> \
       <list of packages>
 ```
 It also automatically makes a tar file of the channel which can be used for
