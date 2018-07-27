@@ -1,4 +1,4 @@
-This is a small utility meant to create a custom channel of the curent
+This is a small utility meant to create a custom channel of the current
 conda virtual environment that can then be used to "freeze" all of the
 packages in that environment. This was motivated by a history of using
 conda to manage dependencies and having them "go bad" even when we pin
